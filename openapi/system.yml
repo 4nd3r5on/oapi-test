@@ -1,0 +1,20 @@
+openapi: 3.0.3
+info:
+  title: System Monitor API
+  version: 0.1.0
+paths:
+  /status:
+    get:
+      summary: Returns the current system status
+      responses:
+        '200':
+          description: A successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  uptime:
+                    type: integer
