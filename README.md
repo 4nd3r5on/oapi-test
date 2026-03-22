@@ -2,9 +2,16 @@
 
 My learning repo to learn about openapi, how to work with it, hot to integrate it into my flow.
 
+```sh
+# Bundle OpenAPI coduments 
+npx @redocly/cli bundle ./pkg/api/openapi/api.yml --ext yml -o ./pkg/api/api.yml
+# Run codegen
+go generate ./...
+```
+
 ### How did I setup it
 
-All the OpenAPI-related documents are at `@/openapi`
+All the OpenAPI-related documents are at `./pkg/api/openapi/`
 
 #### Kin OpenAPI
 

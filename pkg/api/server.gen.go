@@ -6,15 +6,38 @@
 package api
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
+
+	"github.com/oapi-codegen/runtime"
+	strictnethttp "github.com/oapi-codegen/runtime/strictmiddleware/nethttp"
 )
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
-	// Returns the current system status
-	// (GET /status)
-	GetStatus(w http.ResponseWriter, r *http.Request)
+	// Create a new user
+	// (POST /users)
+	CreateUser(w http.ResponseWriter, r *http.Request)
+	// Delete own account
+	// (DELETE /users/me)
+	DeleteMe(w http.ResponseWriter, r *http.Request)
+	// Get own private info
+	// (GET /users/me)
+	GetMe(w http.ResponseWriter, r *http.Request)
+	// Update own profile
+	// (PATCH /users/me)
+	UpdateMe(w http.ResponseWriter, r *http.Request)
+	// Get public user info by username
+	// (GET /users/username/{username})
+	GetUserByUsername(w http.ResponseWriter, r *http.Request, username Username)
+	// Check username availability
+	// (GET /users/username/{username}/availability)
+	CheckUsernameAvailability(w http.ResponseWriter, r *http.Request, username Username)
+	// Get public user info by ID
+	// (GET /users/{userID})
+	GetUserByID(w http.ResponseWriter, r *http.Request, userID UserID)
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -26,11 +49,178 @@ type ServerInterfaceWrapper struct {
 
 type MiddlewareFunc func(http.Handler) http.Handler
 
-// GetStatus operation middleware
-func (siw *ServerInterfaceWrapper) GetStatus(w http.ResponseWriter, r *http.Request) {
+// CreateUser operation middleware
+func (siw *ServerInterfaceWrapper) CreateUser(w http.ResponseWriter, r *http.Request) {
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetStatus(w, r)
+		siw.Handler.CreateUser(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// DeleteMe operation middleware
+func (siw *ServerInterfaceWrapper) DeleteMe(w http.ResponseWriter, r *http.Request) {
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, TrustMeBroScopes, []string{})
+
+	ctx = context.WithValue(ctx, TelegramMiniAppScopes, []string{})
+
+	ctx = context.WithValue(ctx, SessionKeyScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.DeleteMe(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetMe operation middleware
+func (siw *ServerInterfaceWrapper) GetMe(w http.ResponseWriter, r *http.Request) {
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, TrustMeBroScopes, []string{})
+
+	ctx = context.WithValue(ctx, TelegramMiniAppScopes, []string{})
+
+	ctx = context.WithValue(ctx, SessionKeyScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetMe(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UpdateMe operation middleware
+func (siw *ServerInterfaceWrapper) UpdateMe(w http.ResponseWriter, r *http.Request) {
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, TrustMeBroScopes, []string{})
+
+	ctx = context.WithValue(ctx, TelegramMiniAppScopes, []string{})
+
+	ctx = context.WithValue(ctx, SessionKeyScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UpdateMe(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetUserByUsername operation middleware
+func (siw *ServerInterfaceWrapper) GetUserByUsername(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "username" -------------
+	var username Username
+
+	err = runtime.BindStyledParameterWithOptions("simple", "username", r.PathValue("username"), &username, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "username", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, TrustMeBroScopes, []string{})
+
+	ctx = context.WithValue(ctx, TelegramMiniAppScopes, []string{})
+
+	ctx = context.WithValue(ctx, SessionKeyScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetUserByUsername(w, r, username)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CheckUsernameAvailability operation middleware
+func (siw *ServerInterfaceWrapper) CheckUsernameAvailability(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "username" -------------
+	var username Username
+
+	err = runtime.BindStyledParameterWithOptions("simple", "username", r.PathValue("username"), &username, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "username", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CheckUsernameAvailability(w, r, username)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetUserByID operation middleware
+func (siw *ServerInterfaceWrapper) GetUserByID(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "userID" -------------
+	var userID UserID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "userID", r.PathValue("userID"), &userID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid"})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "userID", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, TrustMeBroScopes, []string{})
+
+	ctx = context.WithValue(ctx, TelegramMiniAppScopes, []string{})
+
+	ctx = context.WithValue(ctx, SessionKeyScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetUserByID(w, r, userID)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -160,7 +350,507 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 		ErrorHandlerFunc:   options.ErrorHandlerFunc,
 	}
 
-	m.HandleFunc("GET "+options.BaseURL+"/status", wrapper.GetStatus)
+	m.HandleFunc("POST "+options.BaseURL+"/users", wrapper.CreateUser)
+	m.HandleFunc("DELETE "+options.BaseURL+"/users/me", wrapper.DeleteMe)
+	m.HandleFunc("GET "+options.BaseURL+"/users/me", wrapper.GetMe)
+	m.HandleFunc("PATCH "+options.BaseURL+"/users/me", wrapper.UpdateMe)
+	m.HandleFunc("GET "+options.BaseURL+"/users/username/{username}", wrapper.GetUserByUsername)
+	m.HandleFunc("GET "+options.BaseURL+"/users/username/{username}/availability", wrapper.CheckUsernameAvailability)
+	m.HandleFunc("GET "+options.BaseURL+"/users/{userID}", wrapper.GetUserByID)
 
 	return m
+}
+
+type BadRequestJSONResponse ErrorResponse
+
+type ConflictJSONResponse struct {
+	union json.RawMessage
+}
+
+type InternalErrorJSONResponse ErrorResponse
+
+type NotFoundJSONResponse ErrorResponse
+
+type CreateUserRequestObject struct {
+	Body *CreateUserJSONRequestBody
+}
+
+type CreateUserResponseObject interface {
+	VisitCreateUserResponse(w http.ResponseWriter) error
+}
+
+type CreateUser201JSONResponse PrivUser
+
+func (response CreateUser201JSONResponse) VisitCreateUserResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateUser400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response CreateUser400JSONResponse) VisitCreateUserResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateUser409JSONResponse struct{ ConflictJSONResponse }
+
+func (response CreateUser409JSONResponse) VisitCreateUserResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response.union)
+}
+
+type CreateUser500JSONResponse struct{ InternalErrorJSONResponse }
+
+func (response CreateUser500JSONResponse) VisitCreateUserResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteMeRequestObject struct {
+}
+
+type DeleteMeResponseObject interface {
+	VisitDeleteMeResponse(w http.ResponseWriter) error
+}
+
+type DeleteMe204Response struct {
+}
+
+func (response DeleteMe204Response) VisitDeleteMeResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type DeleteMe500JSONResponse struct{ InternalErrorJSONResponse }
+
+func (response DeleteMe500JSONResponse) VisitDeleteMeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetMeRequestObject struct {
+}
+
+type GetMeResponseObject interface {
+	VisitGetMeResponse(w http.ResponseWriter) error
+}
+
+type GetMe200JSONResponse PrivUser
+
+func (response GetMe200JSONResponse) VisitGetMeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetMe500JSONResponse struct{ InternalErrorJSONResponse }
+
+func (response GetMe500JSONResponse) VisitGetMeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UpdateMeRequestObject struct {
+	Body *UpdateMeJSONRequestBody
+}
+
+type UpdateMeResponseObject interface {
+	VisitUpdateMeResponse(w http.ResponseWriter) error
+}
+
+type UpdateMe200JSONResponse PrivUser
+
+func (response UpdateMe200JSONResponse) VisitUpdateMeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UpdateMe400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response UpdateMe400JSONResponse) VisitUpdateMeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UpdateMe409JSONResponse struct{ ConflictJSONResponse }
+
+func (response UpdateMe409JSONResponse) VisitUpdateMeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response.union)
+}
+
+type UpdateMe500JSONResponse struct{ InternalErrorJSONResponse }
+
+func (response UpdateMe500JSONResponse) VisitUpdateMeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetUserByUsernameRequestObject struct {
+	Username Username `json:"username"`
+}
+
+type GetUserByUsernameResponseObject interface {
+	VisitGetUserByUsernameResponse(w http.ResponseWriter) error
+}
+
+type GetUserByUsername200JSONResponse PubUser
+
+func (response GetUserByUsername200JSONResponse) VisitGetUserByUsernameResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetUserByUsername404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response GetUserByUsername404JSONResponse) VisitGetUserByUsernameResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetUserByUsername500JSONResponse struct{ InternalErrorJSONResponse }
+
+func (response GetUserByUsername500JSONResponse) VisitGetUserByUsernameResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CheckUsernameAvailabilityRequestObject struct {
+	Username Username `json:"username"`
+}
+
+type CheckUsernameAvailabilityResponseObject interface {
+	VisitCheckUsernameAvailabilityResponse(w http.ResponseWriter) error
+}
+
+type CheckUsernameAvailability200JSONResponse UsernameAvailability
+
+func (response CheckUsernameAvailability200JSONResponse) VisitCheckUsernameAvailabilityResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CheckUsernameAvailability400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response CheckUsernameAvailability400JSONResponse) VisitCheckUsernameAvailabilityResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CheckUsernameAvailability500JSONResponse struct{ InternalErrorJSONResponse }
+
+func (response CheckUsernameAvailability500JSONResponse) VisitCheckUsernameAvailabilityResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetUserByIDRequestObject struct {
+	UserID UserID `json:"userID"`
+}
+
+type GetUserByIDResponseObject interface {
+	VisitGetUserByIDResponse(w http.ResponseWriter) error
+}
+
+type GetUserByID200JSONResponse PubUser
+
+func (response GetUserByID200JSONResponse) VisitGetUserByIDResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetUserByID404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response GetUserByID404JSONResponse) VisitGetUserByIDResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetUserByID500JSONResponse struct{ InternalErrorJSONResponse }
+
+func (response GetUserByID500JSONResponse) VisitGetUserByIDResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+// StrictServerInterface represents all server handlers.
+type StrictServerInterface interface {
+	// Create a new user
+	// (POST /users)
+	CreateUser(ctx context.Context, request CreateUserRequestObject) (CreateUserResponseObject, error)
+	// Delete own account
+	// (DELETE /users/me)
+	DeleteMe(ctx context.Context, request DeleteMeRequestObject) (DeleteMeResponseObject, error)
+	// Get own private info
+	// (GET /users/me)
+	GetMe(ctx context.Context, request GetMeRequestObject) (GetMeResponseObject, error)
+	// Update own profile
+	// (PATCH /users/me)
+	UpdateMe(ctx context.Context, request UpdateMeRequestObject) (UpdateMeResponseObject, error)
+	// Get public user info by username
+	// (GET /users/username/{username})
+	GetUserByUsername(ctx context.Context, request GetUserByUsernameRequestObject) (GetUserByUsernameResponseObject, error)
+	// Check username availability
+	// (GET /users/username/{username}/availability)
+	CheckUsernameAvailability(ctx context.Context, request CheckUsernameAvailabilityRequestObject) (CheckUsernameAvailabilityResponseObject, error)
+	// Get public user info by ID
+	// (GET /users/{userID})
+	GetUserByID(ctx context.Context, request GetUserByIDRequestObject) (GetUserByIDResponseObject, error)
+}
+
+type StrictHandlerFunc = strictnethttp.StrictHTTPHandlerFunc
+type StrictMiddlewareFunc = strictnethttp.StrictHTTPMiddlewareFunc
+
+type StrictHTTPServerOptions struct {
+	RequestErrorHandlerFunc  func(w http.ResponseWriter, r *http.Request, err error)
+	ResponseErrorHandlerFunc func(w http.ResponseWriter, r *http.Request, err error)
+}
+
+func NewStrictHandler(ssi StrictServerInterface, middlewares []StrictMiddlewareFunc) ServerInterface {
+	return &strictHandler{ssi: ssi, middlewares: middlewares, options: StrictHTTPServerOptions{
+		RequestErrorHandlerFunc: func(w http.ResponseWriter, r *http.Request, err error) {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+		},
+		ResponseErrorHandlerFunc: func(w http.ResponseWriter, r *http.Request, err error) {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		},
+	}}
+}
+
+func NewStrictHandlerWithOptions(ssi StrictServerInterface, middlewares []StrictMiddlewareFunc, options StrictHTTPServerOptions) ServerInterface {
+	return &strictHandler{ssi: ssi, middlewares: middlewares, options: options}
+}
+
+type strictHandler struct {
+	ssi         StrictServerInterface
+	middlewares []StrictMiddlewareFunc
+	options     StrictHTTPServerOptions
+}
+
+// CreateUser operation middleware
+func (sh *strictHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
+	var request CreateUserRequestObject
+
+	var body CreateUserJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateUser(ctx, request.(CreateUserRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateUser")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CreateUserResponseObject); ok {
+		if err := validResponse.VisitCreateUserResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// DeleteMe operation middleware
+func (sh *strictHandler) DeleteMe(w http.ResponseWriter, r *http.Request) {
+	var request DeleteMeRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.DeleteMe(ctx, request.(DeleteMeRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "DeleteMe")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(DeleteMeResponseObject); ok {
+		if err := validResponse.VisitDeleteMeResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetMe operation middleware
+func (sh *strictHandler) GetMe(w http.ResponseWriter, r *http.Request) {
+	var request GetMeRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetMe(ctx, request.(GetMeRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetMe")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetMeResponseObject); ok {
+		if err := validResponse.VisitGetMeResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// UpdateMe operation middleware
+func (sh *strictHandler) UpdateMe(w http.ResponseWriter, r *http.Request) {
+	var request UpdateMeRequestObject
+
+	var body UpdateMeJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.UpdateMe(ctx, request.(UpdateMeRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UpdateMe")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(UpdateMeResponseObject); ok {
+		if err := validResponse.VisitUpdateMeResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetUserByUsername operation middleware
+func (sh *strictHandler) GetUserByUsername(w http.ResponseWriter, r *http.Request, username Username) {
+	var request GetUserByUsernameRequestObject
+
+	request.Username = username
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetUserByUsername(ctx, request.(GetUserByUsernameRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetUserByUsername")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetUserByUsernameResponseObject); ok {
+		if err := validResponse.VisitGetUserByUsernameResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CheckUsernameAvailability operation middleware
+func (sh *strictHandler) CheckUsernameAvailability(w http.ResponseWriter, r *http.Request, username Username) {
+	var request CheckUsernameAvailabilityRequestObject
+
+	request.Username = username
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CheckUsernameAvailability(ctx, request.(CheckUsernameAvailabilityRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CheckUsernameAvailability")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CheckUsernameAvailabilityResponseObject); ok {
+		if err := validResponse.VisitCheckUsernameAvailabilityResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetUserByID operation middleware
+func (sh *strictHandler) GetUserByID(w http.ResponseWriter, r *http.Request, userID UserID) {
+	var request GetUserByIDRequestObject
+
+	request.UserID = userID
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetUserByID(ctx, request.(GetUserByIDRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetUserByID")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetUserByIDResponseObject); ok {
+		if err := validResponse.VisitGetUserByIDResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
 }

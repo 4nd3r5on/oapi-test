@@ -1,0 +1,54 @@
+openapi: 3.0.3
+info:
+  title: Common Auth Components
+  version: 0.1.0
+
+components:
+  securitySchemes:
+
+    TrustMeBro:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: |
+        **Development/testing only. Never use in production.**
+        
+        Authenticates as any user by providing their UUID directly — no credentials required.
+        
+        Format: `Authorization: TMB <uuid>`
+        
+        Example: `Authorization: TMB 550e8400-e29b-41d4-a716-446655440000`
+
+    TelegramMiniApp:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: |
+        Authenticates via Telegram Mini App using the signed `initData` string
+        provided by the Telegram WebApp JS SDK at launch.
+        
+        The server validates the HMAC signature using the bot token secret.
+        
+        Format: `Authorization: TMA <initData>`
+        
+        Example: `Authorization: TMA query_id=AAF...&user=%7B...%7D&hash=abc123`
+        
+        Reference: https://core.telegram.org/bots/webapps#validating-data-received-via-the-mini-app
+
+    SessionKey:
+      type: http
+      scheme: bearer
+      bearerFormat: Opaque
+      description: |
+        Session key issued by the authorization server after completing an
+        OIDC + PKCE flow with an external OAuth2 provider (e.g. Google, GitHub).
+        
+        **Flow:**
+        1. Client initiates PKCE: generates `code_verifier` + `code_challenge`
+        2. Redirect to external provider's authorization endpoint
+        3. Provider returns `authorization_code` to your callback URI
+        4. Exchange `authorization_code` + `code_verifier` at `/auth/token`
+        5. Server validates the OIDC `id_token`, creates a session, returns `session_key`
+        6. Use the `session_key` as a Bearer token on protected endpoints
+        
+        Format: `Authorization: Bearer <session_key>`

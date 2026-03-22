@@ -4,16 +4,21 @@ package api
 import (
 	"context"
 	"encoding/json"
+	"log/slog"
 	"net/http"
+
+	"github.com/4nd3rs0n/oapi-test/internal/api/messages"
+	"github.com/4nd3rs0n/oapi-test/internal/api/users"
 )
 
-type Dependencies struct{}
-
 // API implements /pkg/api ServerInterface
-type API struct{}
+type API struct {
+	users.UsersAPI
+	messages.MessagesAPI
 
-func NewAPI(ctx context.Context) *API {
-	return &API{}
+	Ctx    context.Context
+	App    App
+	Logger *slog.Logger
 }
 
 func (api *API) GetStatus(w http.ResponseWriter, r *http.Request) {

@@ -1,14 +1,15 @@
 openapi: 3.0.3
 info:
-  title: API
+  title: Users
   version: 0.1.0
+
+
 paths:
   /users:
     post:
       summary: Create a new user
       operationId: createUser
-      tags:
-        - users
+      tags: [users]
       requestBody:
         required: true
         content:
@@ -23,17 +24,17 @@ paths:
               schema:
                 $ref: '#/components/schemas/PrivUser'
         '400':
-          $ref: '#/components/responses/BadRequest'
+          $ref: './lib/errs.yml#/components/responses/BadRequest'
         '409':
-          $ref: '#/components/responses/Conflict'
+          $ref: './lib/errs.yml#/components/responses/Conflict'
         '500':
-          $ref: '#/components/responses/InternalError'
+          $ref: './lib/errs.yml#/components/responses/InternalError'
+
   /users/me:
     get:
       summary: Get own private info
       operationId: getMe
-      tags:
-        - users
+      tags: [users]
       security:
         - TrustMeBro: []
         - TelegramMiniApp: []
@@ -46,7 +47,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/PrivUser'
         '500':
-          $ref: '#/components/responses/InternalError'
+          $ref: './lib/errs.yml#/components/responses/InternalError'
     patch:
       security:
         - TrustMeBro: []
@@ -54,8 +55,7 @@ paths:
         - SessionKey: []
       summary: Update own profile
       operationId: updateMe
-      tags:
-        - users
+      tags: [users]
       requestBody:
         required: true
         content:
@@ -70,11 +70,11 @@ paths:
               schema:
                 $ref: '#/components/schemas/PrivUser'
         '400':
-          $ref: '#/components/responses/BadRequest'
+          $ref: './lib/errs.yml#/components/responses/BadRequest'
         '409':
-          $ref: '#/components/responses/Conflict'
+          $ref: './lib/errs.yml#/components/responses/Conflict'
         '500':
-          $ref: '#/components/responses/InternalError'
+          $ref: './lib/errs.yml#/components/responses/InternalError'
     delete:
       security:
         - TrustMeBro: []
@@ -82,13 +82,13 @@ paths:
         - SessionKey: []
       summary: Delete own account
       operationId: deleteMe
-      tags:
-        - users
+      tags: [users]
       responses:
         '204':
           description: Account deleted
         '500':
-          $ref: '#/components/responses/InternalError'
+          $ref: './lib/errs.yml#/components/responses/InternalError'
+
   /users/{userID}:
     parameters:
       - $ref: '#/components/parameters/UserID'
@@ -100,8 +100,7 @@ paths:
         - SessionKey: []
       summary: Get public user info by ID
       operationId: getUserByID
-      tags:
-        - users
+      tags: [users]
       responses:
         '200':
           description: Public user info
@@ -110,9 +109,10 @@ paths:
               schema:
                 $ref: '#/components/schemas/PubUser'
         '404':
-          $ref: '#/components/responses/NotFound'
+          $ref: './lib/errs.yml#/components/responses/NotFound'
         '500':
-          $ref: '#/components/responses/InternalError'
+          $ref: './lib/errs.yml#/components/responses/InternalError'
+
   /users/username/{username}:
     parameters:
       - $ref: '#/components/parameters/Username'
@@ -124,8 +124,7 @@ paths:
         - SessionKey: []
       summary: Get public user info by username
       operationId: getUserByUsername
-      tags:
-        - users
+      tags: [users]
       responses:
         '200':
           description: Public user info
@@ -134,17 +133,17 @@ paths:
               schema:
                 $ref: '#/components/schemas/PubUser'
         '404':
-          $ref: '#/components/responses/NotFound'
+          $ref: './lib/errs.yml#/components/responses/NotFound'
         '500':
-          $ref: '#/components/responses/InternalError'
+          $ref: './lib/errs.yml#/components/responses/InternalError'
+
   /users/username/{username}/availability:
     parameters:
       - $ref: '#/components/parameters/Username'
     get:
       summary: Check username availability
       operationId: checkUsernameAvailability
-      tags:
-        - users
+      tags: [users]
       responses:
         '200':
           description: Username availability status
@@ -153,21 +152,49 @@ paths:
               schema:
                 $ref: '#/components/schemas/UsernameAvailability'
         '400':
-          $ref: '#/components/responses/BadRequest'
+          $ref: './lib/errs.yml#/components/responses/BadRequest'
         '500':
-          $ref: '#/components/responses/InternalError'
+          $ref: './lib/errs.yml#/components/responses/InternalError'
+
+
 components:
+  securitySchemes:
+    TrustMeBro:
+      $ref: './lib/auth.yml#/components/securitySchemes/TrustMeBro'
+    TelegramMiniApp:
+      $ref: './lib/auth.yml#/components/securitySchemes/TelegramMiniApp'
+    SessionKey:
+      $ref: './lib/auth.yml#/components/securitySchemes/SessionKey'
+
+  parameters:
+    UserID:
+      name: userID
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      example: 018e4c71-5f2a-7c3d-b8e9-1a2b3c4d5e6f
+
+    Username:
+      name: username
+      in: path
+      required: true
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 64
+      example: anderson
+
   schemas:
     UUID:
       type: string
       format: uuid
       example: d1b3aef0-b669-471a-80c7-f079f87e8706
+
     NewUserRequest:
       type: object
-      required:
-        - id
-        - username
-        - locale
+      required: [id, username, locale]
       properties:
         id:
           $ref: '#/components/schemas/UUID'
@@ -183,75 +210,7 @@ components:
           type: string
           maxLength: 512
           example: Go developer. CTF enjoyer.
-    PubUser:
-      type: object
-      required:
-        - id
-        - username
-        - bio
-      properties:
-        id:
-          $ref: '#/components/schemas/UUID'
-        username:
-          type: string
-          example: anderson
-        bio:
-          type: string
-          example: Go developer. CTF enjoyer.
-    PrivUser:
-      allOf:
-        - $ref: '#/components/schemas/PubUser'
-        - type: object
-          required:
-            - locale
-            - created_at
-            - updated_at
-          properties:
-            locale:
-              type: string
-              example: sr-RS
-            created_at:
-              type: string
-              format: date-time
-            updated_at:
-              type: string
-              format: date-time
-    ErrorResponse:
-      type: object
-      required:
-        - error
-      properties:
-        code:
-          type: string
-        error:
-          type: string
-          example: resource not found
-    ResourceConflictError:
-      type: object
-      required:
-        - code
-        - error
-      allOf:
-        - $ref: '#/components/schemas/ErrorResponse'
-        - properties:
-            code:
-              type: string
-              enum:
-                - resource_exists
-              example: resource_exists
-    IdempotencyConflictError:
-      type: object
-      required:
-        - code
-        - error
-      allOf:
-        - $ref: '#/components/schemas/ErrorResponse'
-        - properties:
-            code:
-              type: string
-              enum:
-                - idempotency_conflict
-              example: idempotency_conflict
+
     UpdateUserRequest:
       type: object
       minProperties: 1
@@ -268,64 +227,40 @@ components:
           type: string
           maxLength: 512
           example: Updated bio.
+
+    PubUser:
+      type: object
+      required: [id, username, bio]
+      properties:
+        id:
+          $ref: '#/components/schemas/UUID'
+        username:
+          type: string
+          example: anderson
+        bio:
+          type: string
+          example: Go developer. CTF enjoyer.
+
     UsernameAvailability:
       type: object
-      required:
-        - available
+      required: [available]
       properties:
         available:
           type: boolean
           example: true
-  responses:
-    BadRequest:
-      description: Invalid request body or parameters
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-    Conflict:
-      description: |
-        Conflict. Possible causes:
-        - `resource_exists` — resource already exists
-        - `idempotency_conflict` — a request with the same Idempotency-Key is in flight
-      content:
-        application/json:
-          schema:
-            oneOf:
-              - $ref: '#/components/schemas/ResourceConflictError'
-              - $ref: '#/components/schemas/IdempotencyConflictError'
-            discriminator:
-              propertyName: code
-              mapping:
-                resource_exists: '#/components/schemas/ResourceConflictError'
-                idempotency_conflict: '#/components/schemas/IdempotencyConflictError'
-    InternalError:
-      description: Internal server error
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-    NotFound:
-      description: Resource not found
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-  parameters:
-    UserID:
-      name: userID
-      in: path
-      required: true
-      schema:
-        type: string
-        format: uuid
-      example: 018e4c71-5f2a-7c3d-b8e9-1a2b3c4d5e6f
-    Username:
-      name: username
-      in: path
-      required: true
-      schema:
-        type: string
-        minLength: 1
-        maxLength: 64
-      example: anderson
+
+    PrivUser:
+      allOf:
+        - $ref: '#/components/schemas/PubUser'
+        - type: object
+          required: [locale, created_at, updated_at]
+          properties:
+            locale:
+              type: string
+              example: sr-RS
+            created_at:
+              type: string
+              format: date-time
+            updated_at:
+              type: string
+              format: date-time

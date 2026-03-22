@@ -6,3 +6,6 @@ generate:
 
 output-options:
   skip-prune: true
+
+import-mapping:
+  ./errs.yml: github.com/4nd3rs0n/oapi-test/pkg/api/types

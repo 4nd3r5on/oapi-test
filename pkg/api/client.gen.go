@@ -4,6 +4,7 @@
 package api
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -11,6 +12,8 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+
+	"github.com/oapi-codegen/runtime"
 )
 
 // RequestEditorFn  is the function signature for the RequestEditor callback function
@@ -86,12 +89,34 @@ func WithRequestEditorFn(fn RequestEditorFn) ClientOption {
 
 // The interface specification for the client above.
 type ClientInterface interface {
-	// GetStatus request
-	GetStatus(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// CreateUserWithBody request with any body
+	CreateUserWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	CreateUser(ctx context.Context, body CreateUserJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// DeleteMe request
+	DeleteMe(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetMe request
+	GetMe(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UpdateMeWithBody request with any body
+	UpdateMeWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	UpdateMe(ctx context.Context, body UpdateMeJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetUserByUsername request
+	GetUserByUsername(ctx context.Context, username Username, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// CheckUsernameAvailability request
+	CheckUsernameAvailability(ctx context.Context, username Username, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetUserByID request
+	GetUserByID(ctx context.Context, userID UserID, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
-func (c *Client) GetStatus(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetStatusRequest(c.Server)
+func (c *Client) CreateUserWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateUserRequestWithBody(c.Server, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -102,8 +127,115 @@ func (c *Client) GetStatus(ctx context.Context, reqEditors ...RequestEditorFn) (
 	return c.Client.Do(req)
 }
 
-// NewGetStatusRequest generates requests for GetStatus
-func NewGetStatusRequest(server string) (*http.Request, error) {
+func (c *Client) CreateUser(ctx context.Context, body CreateUserJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateUserRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DeleteMe(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteMeRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetMe(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetMeRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateMeWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateMeRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateMe(ctx context.Context, body UpdateMeJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateMeRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetUserByUsername(ctx context.Context, username Username, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetUserByUsernameRequest(c.Server, username)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CheckUsernameAvailability(ctx context.Context, username Username, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCheckUsernameAvailabilityRequest(c.Server, username)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetUserByID(ctx context.Context, userID UserID, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetUserByIDRequest(c.Server, userID)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+// NewCreateUserRequest calls the generic CreateUser builder with application/json body
+func NewCreateUserRequest(server string, body CreateUserJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewCreateUserRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewCreateUserRequestWithBody generates requests for CreateUser with any type of body
+func NewCreateUserRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -111,7 +243,205 @@ func NewGetStatusRequest(server string) (*http.Request, error) {
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/status")
+	operationPath := fmt.Sprintf("/users")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewDeleteMeRequest generates requests for DeleteMe
+func NewDeleteMeRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/users/me")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetMeRequest generates requests for GetMe
+func NewGetMeRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/users/me")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewUpdateMeRequest calls the generic UpdateMe builder with application/json body
+func NewUpdateMeRequest(server string, body UpdateMeJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewUpdateMeRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewUpdateMeRequestWithBody generates requests for UpdateMe with any type of body
+func NewUpdateMeRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/users/me")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("PATCH", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewGetUserByUsernameRequest generates requests for GetUserByUsername
+func NewGetUserByUsernameRequest(server string, username Username) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "username", username, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/users/username/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewCheckUsernameAvailabilityRequest generates requests for CheckUsernameAvailability
+func NewCheckUsernameAvailabilityRequest(server string, username Username) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "username", username, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/users/username/%s/availability", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetUserByIDRequest generates requests for GetUserByID
+func NewGetUserByIDRequest(server string, userID UserID) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "userID", userID, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: "uuid"})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/users/%s", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -172,21 +502,43 @@ func WithBaseURL(baseURL string) ClientOption {
 
 // ClientWithResponsesInterface is the interface specification for the client with responses above.
 type ClientWithResponsesInterface interface {
-	// GetStatusWithResponse request
-	GetStatusWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetStatusResponse, error)
+	// CreateUserWithBodyWithResponse request with any body
+	CreateUserWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateUserResponse, error)
+
+	CreateUserWithResponse(ctx context.Context, body CreateUserJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateUserResponse, error)
+
+	// DeleteMeWithResponse request
+	DeleteMeWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*DeleteMeResponse, error)
+
+	// GetMeWithResponse request
+	GetMeWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetMeResponse, error)
+
+	// UpdateMeWithBodyWithResponse request with any body
+	UpdateMeWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateMeResponse, error)
+
+	UpdateMeWithResponse(ctx context.Context, body UpdateMeJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateMeResponse, error)
+
+	// GetUserByUsernameWithResponse request
+	GetUserByUsernameWithResponse(ctx context.Context, username Username, reqEditors ...RequestEditorFn) (*GetUserByUsernameResponse, error)
+
+	// CheckUsernameAvailabilityWithResponse request
+	CheckUsernameAvailabilityWithResponse(ctx context.Context, username Username, reqEditors ...RequestEditorFn) (*CheckUsernameAvailabilityResponse, error)
+
+	// GetUserByIDWithResponse request
+	GetUserByIDWithResponse(ctx context.Context, userID UserID, reqEditors ...RequestEditorFn) (*GetUserByIDResponse, error)
 }
 
-type GetStatusResponse struct {
+type CreateUserResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *struct {
-		Status *string `json:"status,omitempty"`
-		Uptime *int    `json:"uptime,omitempty"`
-	}
+	JSON201      *PrivUser
+	JSON400      *BadRequest
+	JSON409      *Conflict
+	JSON500      *InternalError
 }
 
 // Status returns HTTPResponse.Status
-func (r GetStatusResponse) Status() string {
+func (r CreateUserResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -194,45 +546,502 @@ func (r GetStatusResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r GetStatusResponse) StatusCode() int {
+func (r CreateUserResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
 }
 
-// GetStatusWithResponse request returning *GetStatusResponse
-func (c *ClientWithResponses) GetStatusWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetStatusResponse, error) {
-	rsp, err := c.GetStatus(ctx, reqEditors...)
+type DeleteMeResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON500      *InternalError
+}
+
+// Status returns HTTPResponse.Status
+func (r DeleteMeResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DeleteMeResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetMeResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *PrivUser
+	JSON500      *InternalError
+}
+
+// Status returns HTTPResponse.Status
+func (r GetMeResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetMeResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UpdateMeResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *PrivUser
+	JSON400      *BadRequest
+	JSON409      *Conflict
+	JSON500      *InternalError
+}
+
+// Status returns HTTPResponse.Status
+func (r UpdateMeResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UpdateMeResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetUserByUsernameResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *PubUser
+	JSON404      *NotFound
+	JSON500      *InternalError
+}
+
+// Status returns HTTPResponse.Status
+func (r GetUserByUsernameResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetUserByUsernameResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type CheckUsernameAvailabilityResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *UsernameAvailability
+	JSON400      *BadRequest
+	JSON500      *InternalError
+}
+
+// Status returns HTTPResponse.Status
+func (r CheckUsernameAvailabilityResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CheckUsernameAvailabilityResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetUserByIDResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *PubUser
+	JSON404      *NotFound
+	JSON500      *InternalError
+}
+
+// Status returns HTTPResponse.Status
+func (r GetUserByIDResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetUserByIDResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// CreateUserWithBodyWithResponse request with arbitrary body returning *CreateUserResponse
+func (c *ClientWithResponses) CreateUserWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateUserResponse, error) {
+	rsp, err := c.CreateUserWithBody(ctx, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseGetStatusResponse(rsp)
+	return ParseCreateUserResponse(rsp)
 }
 
-// ParseGetStatusResponse parses an HTTP response from a GetStatusWithResponse call
-func ParseGetStatusResponse(rsp *http.Response) (*GetStatusResponse, error) {
+func (c *ClientWithResponses) CreateUserWithResponse(ctx context.Context, body CreateUserJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateUserResponse, error) {
+	rsp, err := c.CreateUser(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateUserResponse(rsp)
+}
+
+// DeleteMeWithResponse request returning *DeleteMeResponse
+func (c *ClientWithResponses) DeleteMeWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*DeleteMeResponse, error) {
+	rsp, err := c.DeleteMe(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteMeResponse(rsp)
+}
+
+// GetMeWithResponse request returning *GetMeResponse
+func (c *ClientWithResponses) GetMeWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetMeResponse, error) {
+	rsp, err := c.GetMe(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetMeResponse(rsp)
+}
+
+// UpdateMeWithBodyWithResponse request with arbitrary body returning *UpdateMeResponse
+func (c *ClientWithResponses) UpdateMeWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateMeResponse, error) {
+	rsp, err := c.UpdateMeWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateMeResponse(rsp)
+}
+
+func (c *ClientWithResponses) UpdateMeWithResponse(ctx context.Context, body UpdateMeJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateMeResponse, error) {
+	rsp, err := c.UpdateMe(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateMeResponse(rsp)
+}
+
+// GetUserByUsernameWithResponse request returning *GetUserByUsernameResponse
+func (c *ClientWithResponses) GetUserByUsernameWithResponse(ctx context.Context, username Username, reqEditors ...RequestEditorFn) (*GetUserByUsernameResponse, error) {
+	rsp, err := c.GetUserByUsername(ctx, username, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetUserByUsernameResponse(rsp)
+}
+
+// CheckUsernameAvailabilityWithResponse request returning *CheckUsernameAvailabilityResponse
+func (c *ClientWithResponses) CheckUsernameAvailabilityWithResponse(ctx context.Context, username Username, reqEditors ...RequestEditorFn) (*CheckUsernameAvailabilityResponse, error) {
+	rsp, err := c.CheckUsernameAvailability(ctx, username, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCheckUsernameAvailabilityResponse(rsp)
+}
+
+// GetUserByIDWithResponse request returning *GetUserByIDResponse
+func (c *ClientWithResponses) GetUserByIDWithResponse(ctx context.Context, userID UserID, reqEditors ...RequestEditorFn) (*GetUserByIDResponse, error) {
+	rsp, err := c.GetUserByID(ctx, userID, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetUserByIDResponse(rsp)
+}
+
+// ParseCreateUserResponse parses an HTTP response from a CreateUserWithResponse call
+func ParseCreateUserResponse(rsp *http.Response) (*CreateUserResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &GetStatusResponse{
+	response := &CreateUserResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
+		var dest PrivUser
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON201 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest BadRequest
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
+		var dest Conflict
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON409 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest InternalError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseDeleteMeResponse parses an HTTP response from a DeleteMeWithResponse call
+func ParseDeleteMeResponse(rsp *http.Response) (*DeleteMeResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DeleteMeResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest InternalError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetMeResponse parses an HTTP response from a GetMeWithResponse call
+func ParseGetMeResponse(rsp *http.Response) (*GetMeResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetMeResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest struct {
-			Status *string `json:"status,omitempty"`
-			Uptime *int    `json:"uptime,omitempty"`
-		}
+		var dest PrivUser
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest InternalError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseUpdateMeResponse parses an HTTP response from a UpdateMeWithResponse call
+func ParseUpdateMeResponse(rsp *http.Response) (*UpdateMeResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UpdateMeResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest PrivUser
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest BadRequest
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
+		var dest Conflict
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON409 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest InternalError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetUserByUsernameResponse parses an HTTP response from a GetUserByUsernameWithResponse call
+func ParseGetUserByUsernameResponse(rsp *http.Response) (*GetUserByUsernameResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetUserByUsernameResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest PubUser
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest NotFound
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest InternalError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseCheckUsernameAvailabilityResponse parses an HTTP response from a CheckUsernameAvailabilityWithResponse call
+func ParseCheckUsernameAvailabilityResponse(rsp *http.Response) (*CheckUsernameAvailabilityResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CheckUsernameAvailabilityResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest UsernameAvailability
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest BadRequest
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest InternalError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetUserByIDResponse parses an HTTP response from a GetUserByIDWithResponse call
+func ParseGetUserByIDResponse(rsp *http.Response) (*GetUserByIDResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetUserByIDResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest PubUser
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest NotFound
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest InternalError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
 	}
 
 	return response, nil
