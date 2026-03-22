@@ -12,14 +12,16 @@ import (
 
 func httpAPI(ctx context.Context, logger *slog.Logger) {
 	url := ":9090"
-	mux := http.NewServeMux()
-
-	api := &apiimpl.API{
-		Ctx:    ctx,
-		App:    nil,
-		Logger: logger,
+	apiHandler, err := apiimpl.NewAPIHandler(
+		ctx, nil, logger,
+	)
+	if err != nil {
+		log.Fatalf("failed to create new API handler: %w", err)
 	}
-	handler := pkgapi.HandlerFromMux(api, mux)
+	handler, err := pkgapi.NewServer(apiHandler, nil)
+	if err != nil {
+		log.Fatalf("failed to initlize the server: %w", err)
+	}
 
 	logger.Info("running server", "url", url)
 	if err := http.ListenAndServe(url, handler); err != nil {

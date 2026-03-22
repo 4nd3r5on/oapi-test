@@ -11,17 +11,20 @@ import (
 	"github.com/4nd3rs0n/oapi-test/internal/api/users"
 )
 
-// API implements /pkg/api ServerInterface
-type API struct {
+// APIHandler implements /pkg/api ServerInterface
+type APIHandler struct {
 	users.UsersAPI
 	messages.MessagesAPI
 
-	Ctx    context.Context
-	App    App
-	Logger *slog.Logger
+	ctx context.Context
 }
 
-func (api *API) GetStatus(w http.ResponseWriter, r *http.Request) {
+func NewAPIHandler(ctx context.Context, app App, logger *slog.Logger) (*APIHandler, error) {
+	api := &APIHandler{}
+	return api, nil
+}
+
+func (api *APIHandler) GetStatus(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]any{
 		"status": "ok",

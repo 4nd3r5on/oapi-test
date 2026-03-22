@@ -27,7 +27,7 @@ paths:
           $ref: './lib/errs.yml#/components/responses/BadRequest'
         '409':
           $ref: './lib/errs.yml#/components/responses/Conflict'
-        '500':
+        default:
           $ref: './lib/errs.yml#/components/responses/InternalError'
 
   /users/me:
@@ -46,7 +46,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PrivUser'
-        '500':
+        default:
           $ref: './lib/errs.yml#/components/responses/InternalError'
     patch:
       security:
@@ -73,7 +73,7 @@ paths:
           $ref: './lib/errs.yml#/components/responses/BadRequest'
         '409':
           $ref: './lib/errs.yml#/components/responses/Conflict'
-        '500':
+        default:
           $ref: './lib/errs.yml#/components/responses/InternalError'
     delete:
       security:
@@ -86,7 +86,7 @@ paths:
       responses:
         '204':
           description: Account deleted
-        '500':
+        default:
           $ref: './lib/errs.yml#/components/responses/InternalError'
 
   /users/{userID}:
@@ -110,7 +110,7 @@ paths:
                 $ref: '#/components/schemas/PubUser'
         '404':
           $ref: './lib/errs.yml#/components/responses/NotFound'
-        '500':
+        default:
           $ref: './lib/errs.yml#/components/responses/InternalError'
 
   /users/username/{username}:
@@ -134,7 +134,7 @@ paths:
                 $ref: '#/components/schemas/PubUser'
         '404':
           $ref: './lib/errs.yml#/components/responses/NotFound'
-        '500':
+        default:
           $ref: './lib/errs.yml#/components/responses/InternalError'
 
   /users/username/{username}/availability:
@@ -153,7 +153,7 @@ paths:
                 $ref: '#/components/schemas/UsernameAvailability'
         '400':
           $ref: './lib/errs.yml#/components/responses/BadRequest'
-        '500':
+        default:
           $ref: './lib/errs.yml#/components/responses/InternalError'
 
 

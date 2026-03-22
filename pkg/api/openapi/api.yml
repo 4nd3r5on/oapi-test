@@ -4,6 +4,15 @@ info:
   title: API
   version: 0.1.0
 
+components:
+  securitySchemes:
+    TrustMeBro:
+      $ref: 'lib/auth.yml#/components/securitySchemes/TrustMeBro'
+    TelegramMiniApp:
+      $ref: 'lib/auth.yml#/components/securitySchemes/TelegramMiniApp'
+    SessionKey:
+      $ref: 'lib/auth.yml#/components/securitySchemes/SessionKey'
+
 paths:
   /users:
     $ref: 'users.yml#/paths/~1users'

@@ -31,3 +31,6 @@ go get -tool github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@latest
 ```
 
 Since it's already done in this repo -- should work with just `go mod download`
+
+
+go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
