@@ -8,11 +8,14 @@ const (
 	BioMaxLen      = 512
 )
 
-var ErrNoFieldsToUpdate = errors.New("at least one field must be provided for update")
+var (
+	ErrNoFieldsToUpdate = errors.New("at least one field must be provided for update")
+	ErrInvalidUsername  = errors.New("username must be between 1 and 64 characters")
+)
 
 // PubView returns the public representation of the user.
-func (u *User) PubView() *PubUser {
-	return &PubUser{
+func (u *User) PubView() *PublicUser {
+	return &PublicUser{
 		ID:       u.ID,
 		Username: u.Username,
 		Bio:      u.Bio,
@@ -20,12 +23,12 @@ func (u *User) PubView() *PubUser {
 }
 
 // PrivView returns the private representation of the user.
-func (u *User) PrivView() *PrivUser {
-	return &PrivUser{
-		PubUser:   *u.PubView(),
-		Locale:    u.Locale,
-		CreatedAt: u.CreatedAt,
-		UpdatedAt: u.UpdatedAt,
+func (u *User) PrivView() *PrivateUser {
+	return &PrivateUser{
+		PublicUser: *u.PubView(),
+		Locale:     u.Locale,
+		CreatedAt:  u.CreatedAt,
+		UpdatedAt:  u.UpdatedAt,
 	}
 }
 

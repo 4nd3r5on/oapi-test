@@ -194,7 +194,7 @@ components:
 
     NewUserRequest:
       type: object
-      required: [id, username, locale]
+      required: [id, locale]
       properties:
         id:
           $ref: '#/components/schemas/UUID'

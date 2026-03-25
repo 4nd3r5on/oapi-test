@@ -32,9 +32,14 @@ func (m Method) String() string {
 }
 
 type ClientData struct {
-	Method     Method
-	TgInitData *initdata.InitData
-	TMBData    *TMBData
+	Method      Method
+	TgInitData  *initdata.InitData
+	TMBData     *TMBData
+	SessionData *SessionData
 }
 
-type VerifierFunc func(ctx context.Context, data string) (*ClientData, error)
+type SessionData struct {
+	Key string
+}
+
+type VerifierFunc func(ctx context.Context, operationName, token string, roles []string) (*ClientData, error)

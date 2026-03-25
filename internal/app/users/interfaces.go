@@ -12,15 +12,22 @@ type DB interface {
 	GetUserByUsername(ctx context.Context, username string) (*User, error)
 	UpdateUser(ctx context.Context, id uuid.UUID, opts UpdateUserOpts) (*User, error)
 	DeleteUser(ctx context.Context, id uuid.UUID) error
+	UserExistsByID(ctx context.Context, id uuid.UUID) (bool, error)
 	UsernameExists(ctx context.Context, username string) (bool, error)
 }
 
 type ServiceInterface interface {
-	Create(ctx context.Context, opts NewUserOpts) (*PrivUser, error)
-	GetPrivByID(ctx context.Context, id uuid.UUID) (*PrivUser, error)
-	GetPubByID(ctx context.Context, id uuid.UUID) (*PubUser, error)
-	GetPubByUsername(ctx context.Context, username string) (*PubUser, error)
-	Update(ctx context.Context, id uuid.UUID, opts UpdateUserOpts) (*PrivUser, error)
-	Delete(ctx context.Context, id uuid.UUID) error
+	// Upset creates user if doesn't exist and returns the user data
+	// or just returns the user
+	Upsert(ctx context.Context) (*PrivateUser, error)
+	Create(ctx context.Context, opts NewUserOpts) (*PrivateUser, error)
+
+	GetByID(ctx context.Context, id uuid.UUID) (*PublicUser, error)
+	GetByUsername(ctx context.Context, username string) (*PublicUser, error)
+
+	GetMe(ctx context.Context) (*PrivateUser, error)
+	UpdateMe(ctx context.Context, opts UpdateUserOpts) (*PrivateUser, error)
+	DeleteMe(ctx context.Context) error
+
 	IsUsernameAvailable(ctx context.Context, username string) (bool, error)
 }

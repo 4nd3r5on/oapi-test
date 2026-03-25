@@ -210,7 +210,7 @@ func (s *InternalErrorStatusCode) SetResponse(val ErrorResponse) {
 // Ref: #/components/schemas/NewUserRequest
 type NewUserRequest struct {
 	ID       UUID      `json:"id"`
-	Username string    `json:"username"`
+	Username OptString `json:"username"`
 	Locale   string    `json:"locale"`
 	Bio      OptString `json:"bio"`
 }
@@ -221,7 +221,7 @@ func (s *NewUserRequest) GetID() UUID {
 }
 
 // GetUsername returns the value of Username.
-func (s *NewUserRequest) GetUsername() string {
+func (s *NewUserRequest) GetUsername() OptString {
 	return s.Username
 }
 
@@ -241,7 +241,7 @@ func (s *NewUserRequest) SetID(val UUID) {
 }
 
 // SetUsername sets the value of Username.
-func (s *NewUserRequest) SetUsername(val string) {
+func (s *NewUserRequest) SetUsername(val OptString) {
 	s.Username = val
 }
 

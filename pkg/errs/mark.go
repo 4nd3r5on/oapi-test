@@ -28,19 +28,23 @@ func (m *markedError) Is(target error) bool {
 	return false
 }
 
-// Mark marks an error with one or more sentinel errors for errors.Is matching.
-// Returns nil if the first error (the subject) is nil.
-// Usage: Mark(originalErr, sentinelOne, sentinelTwo)
+// Mark attaches one or more sentinel errors to err so that errors.Is matches
+// them without changing err's message or breaking the Unwrap chain.
+//
+// The first argument is the subject error; all subsequent arguments are
+// sentinels. Returns nil if err is nil. Returns err unchanged if no sentinels
+// are provided.
+//
+//	err = errs.Mark(err, errs.ErrNotFound)
+//	errors.Is(err, errs.ErrNotFound) // true
+//	err.Error()                       // original message unchanged
 func Mark(errs ...error) error {
 	if len(errs) == 0 || errs[0] == nil {
 		return nil
 	}
-
-	// If no sentinels are provided, return the error as is.
 	if len(errs) == 1 {
 		return errs[0]
 	}
-
 	return &markedError{
 		err:       errs[0],
 		sentinels: errs[1:],

@@ -211,7 +211,6 @@ components:
       type: object
       required:
         - id
-        - username
         - locale
       properties:
         id:

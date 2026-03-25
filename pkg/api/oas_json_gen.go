@@ -393,8 +393,10 @@ func (s *NewUserRequest) encodeFields(e *jx.Encoder) {
 		s.ID.Encode(e)
 	}
 	{
-		e.FieldStart("username")
-		e.Str(s.Username)
+		if s.Username.Set {
+			e.FieldStart("username")
+			s.Username.Encode(e)
+		}
 	}
 	{
 		e.FieldStart("locale")
@@ -435,11 +437,9 @@ func (s *NewUserRequest) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"id\"")
 			}
 		case "username":
-			requiredBitSet[0] |= 1 << 1
 			if err := func() error {
-				v, err := d.Str()
-				s.Username = string(v)
-				if err != nil {
+				s.Username.Reset()
+				if err := s.Username.Decode(d); err != nil {
 					return err
 				}
 				return nil
@@ -478,7 +478,7 @@ func (s *NewUserRequest) Decode(d *jx.Decoder) error {
 	// Validate required fields.
 	var failures []validate.FieldError
 	for i, mask := range [1]uint8{
-		0b00000111,
+		0b00000101,
 	} {
 		if result := (requiredBitSet[i] & mask) ^ mask; result != 0 {
 			// Mask only required fields and check equality to mask using XOR.

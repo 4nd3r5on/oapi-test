@@ -2,8 +2,28 @@
 // aka usecases
 package app
 
-type App struct{}
+import "github.com/4nd3rs0n/oapi-test/internal/app/users"
 
-func New() *App {
-	return &App{}
+type DB interface {
+	users.DB
+}
+
+type Cache interface{}
+
+type Storage interface{}
+
+type App struct {
+	Users *users.Service
+}
+
+func New(db DB, cache Cache, storage Storage) (*App, error) {
+	users := users.NewService(db)
+	// sessions.NewService(cache)
+
+	return &App{
+		Users: users,
+		// TODO:
+		// - Posts
+		// - Usernames
+	}, nil
 }
