@@ -2,35 +2,65 @@
 
 My learning repo to learn about openapi, how to work with it, hot to integrate it into my flow.
 
+## Configure
+
+Create `.env` file and fill it out with the content
 ```sh
-# Bundle OpenAPI coduments 
+cp example.env .env
+# generate passwords
+pw=$(openssl rand -hex 24) && sed -i "s/^APP_PG_PASS=.*/APP_PG_PASS=$pw/" .env
+pw=$(openssl rand -hex 24) && sed -i "s/^PG_PASS=.*/PG_PASS=$pw/" .env
+pw=$(openssl rand -hex 24) && sed -i "s/^REDIS_PASSWORD=.*/REDIS_PASSWORD=$pw/" .env
+
+# Set S3_URL
+nvim .env
+```
+
+## Dependencies
+
+- Go
+- Docker & Docker compose
+- S3 (for Local Development seaweedfs)
+
+### Development
+
+- [SQLc](https://sqlc.dev)
+- [Golang Migrate](https://github.com/golang-migrate/migrate)
+- [GolangCI Lint](https://golangci-lint.run/)
+
+## Development
+
+```sh
+# Generate code from openapi docs
+# 1. Bundle
 npx @redocly/cli bundle ./pkg/api/openapi/api.yml --ext yml -o ./pkg/api/api.yml
-# Run codegen
+# 2. Generate
 go generate ./...
+
+# Generate db package
+sqlc generate
+
+# Apply migrations (only dev container)
+migrate -path ./migrations -database $DB_URL up
+
+# Test
+go test -v ./...
+
+# Lint
+golangci-lint run --fix
 ```
 
-### How did I setup it
+## Run dev
 
-All the OpenAPI-related documents are at `./pkg/api/openapi/`
+Running code with hot reload
 
-#### Kin OpenAPI
-
-[Kin OpenAPI](github.com/getkin/kin-openapi)
-
-Used to integrate it into the app.
-
-Before running codegen or importing to the project -- run [OpenAPI document validation](https://github.com/getkin/kin-openapi?tab=readme-ov-file#validating-an-openapi-document)
-
-`go run github.com/getkin/kin-openapi/cmd/validate@latest -- <files>`
-
-#### Codegen
-
-[install oapi keygen](https://github.com/oapi-codegen/oapi-codegen/?tab=readme-ov-file#install)
 ```sh
-go get -tool github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@latest
+# Up the DB
+docker compose -f ./compose.dev.yml up db -d
+# Apply migrations
+set -a && source .env && set +a
+export DB_URL=postgres://$APP_PG_USER:$APP_PG_PASS@127.0.0.1:5432/$APP_PG_DB?sslmode=disable
+migrate -path pkg/db/migrations -database $DB_URL up
+# Run everything
+docker compose -f ./compose.dev.yml up --build
 ```
-
-Since it's already done in this repo -- should work with just `go mod download`
-
-
-go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest

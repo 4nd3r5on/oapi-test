@@ -16,7 +16,7 @@ type Storage struct {
 
 // NewStorage accepts s3URL in the form:
 //
-//	s3://accessKey:secretKey@host:port/bucket?ssl=true
+//	s3://accessKey:secretKey@host:port?ssl=true
 func NewStorage(_ context.Context, s3URL string) (*Storage, error) {
 	u, err := url.Parse(s3URL)
 	if err != nil {

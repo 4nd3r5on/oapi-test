@@ -28,7 +28,7 @@ const (
 	// rediss://:password@host:port/db
 	EnvCacheURL = "CACHE_URL"
 	// required
-	// s3://accessKey:secretKey@host:port/bucket?ssl=true
+	// s3://accessKey:secretKey@host:port?ssl=true
 	EnvS3URL = "S3_URL"
 	// required for TMA auth
 	EnvTGBotToken = "TG_BOT_TOKEN"

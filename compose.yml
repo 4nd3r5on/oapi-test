@@ -1,34 +1,19 @@
 volumes:
   dev_database:
     driver: local
-  dev_cache:
-    driver: local
 
 networks:
-  dev: ~
+  sisterra: ~
 
 services:
   db:
     extends:
-      file: compose.infra.yml
+      file: compose.postgres.yml
       service: postgresql
-    env_file: ./.env
     volumes:
       - dev_database:/var/lib/postgresql
     networks:
-        - dev
-    ports:
-      - 5432:5432
-
-  cache:
-    extends:
-      file: compose.infra.yml
-      service: redis
-    env_file: ./.env
-    networks:
-        - dev
-    volumes:
-      - dev_cache:/data
+        - sisterra
 
   backend:
     restart: unless-stopped
@@ -36,12 +21,16 @@ services:
       dockerfile: ./dev.Dockerfile
       context: .
     env_file: .env
-    depends_on:
-      db:
-        condition: service_healthy
+    environment:
+      APP_PG_ADDR: postgresql:5432
+      APP_PG_DB: ${APP_PG_DB:-app}
+      APP_PG_USER: ${APP_PG_USER:-app}
+      APP_PG_PASS: ${APP_PG_PASS:?APP_PG_PASS required}
     ports:
       - 9090:9090
     volumes:
       - ./:/app
     networks:
-      - dev
+      - auth-dev
+
+  # TODO: Apply migrations container

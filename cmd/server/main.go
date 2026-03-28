@@ -10,7 +10,6 @@ import (
 	"github.com/4nd3rs0n/oapi-test/internal/app"
 	"github.com/4nd3rs0n/oapi-test/internal/app/auth"
 	"github.com/4nd3rs0n/oapi-test/internal/config"
-	"github.com/4nd3rs0n/oapi-test/internal/infra/minio"
 	"github.com/4nd3rs0n/oapi-test/internal/infra/postgres"
 	"github.com/4nd3rs0n/oapi-test/internal/infra/redis"
 )
@@ -37,7 +36,6 @@ func main() {
 
 	tgBotToken := os.Getenv(config.EnvTGBotToken)
 	dbURL := getRequiredEnv(config.EnvDBURL)
-	s3URL := getRequiredEnv(config.EnvS3URL)
 	cacheURL := getRequiredEnv(config.EnvCacheURL)
 	apiAddr := getEnv(config.EnvAPIAddr, ":9090")
 
@@ -50,12 +48,12 @@ func main() {
 	}
 	defer db.Close()
 
-	slog.Debug("connecting S3 storage", "url", s3URL)
-	// TODO: Use me later
-	storage, err := minio.NewStorage(ctx, s3URL)
-	if err != nil {
-		log.Fatalf("storage connection failed: %v", err)
-	}
+	// TODO: Add S3 for profile pictures and attachments
+	// slog.Debug("connecting S3 storage", "url", s3URL)
+	// storage, err := minio.NewStorage(ctx, s3URL)
+	// if err != nil {
+	// 	log.Fatalf("storage connection failed: %v", err)
+	// }
 
 	slog.Debug("connecting cache", "url", cacheURL)
 	cache, err := redis.NewCache(ctx, cacheURL)
@@ -66,7 +64,7 @@ func main() {
 
 	// Initializing the app
 
-	appLayer, err := app.New(db, cache, storage)
+	appLayer, err := app.New(db, cache, nil)
 	if err != nil {
 		log.Fatalf("error initializing application layer: %v", err)
 	}

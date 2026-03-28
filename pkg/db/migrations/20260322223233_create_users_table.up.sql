@@ -8,12 +8,12 @@ CREATE TABLE users (
 );
 
 CREATE TABLE users_identity_oidc (
-    user_id UUID   NOT NULL REFERENCES users.id,
+    user_id UUID   NOT NULL REFERENCES users(id),
     sub     TEXT   UNIQUE NOT NULL 
 );
 
 CREATE TABLE users_identity_telegram (
-    user_id     UUID   NOT NULL REFERENCES users.id,
+    user_id     UUID   NOT NULL REFERENCES users(id),
     telegram_id BIGINT UNIQUE NOT NULL
 );
 
