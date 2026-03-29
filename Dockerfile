@@ -19,7 +19,7 @@ RUN go build -ldflags="-s -w" -o ./bin/server ./cmd/server
 # === RUNTIME ===
 FROM gcr.io/distroless/static-debian13:nonroot
 
-ENV SISTERRA_ENVIRONMENT=PROD
+ENV ENVIRONMENT=PROD
 
 WORKDIR /app
 COPY --from=builder /app/bin/server ./bin/server

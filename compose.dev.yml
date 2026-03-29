@@ -36,6 +36,8 @@ services:
       dockerfile: ./dev.Dockerfile
       context: .
     env_file: .env
+    environment:
+      CACHE_URL: redis://:${REDIS_PASSWORD}@cache:6379
     depends_on:
       db:
         condition: service_healthy

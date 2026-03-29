@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"strings"
 
 	"github.com/4nd3rs0n/oapi-test/pkg/errs"
 	"github.com/google/uuid"
@@ -14,9 +15,12 @@ type TMBData struct {
 	UserID uuid.UUID
 }
 
-func (auth *TMB) Verify(ctx context.Context, _, userIDStr string, _ []string) (*ClientData, error) {
-	// data is expected to be a raw UUID string
-	userID, err := uuid.Parse(userIDStr)
+func (auth *TMB) Verify(ctx context.Context, _, token string, _ []string) (*ClientData, error) {
+	val, ok := strings.CutPrefix(token, "TMB ")
+	if !ok {
+		return nil, errs.Mark(errs.ErrInvalidArgument)
+	}
+	userID, err := uuid.Parse(val)
 	if err != nil {
 		err = errs.Mark(errs.ErrInvalidArgument)
 		err = errs.SafeMsg(err, "Trust Me Bro auth invalid user id format")

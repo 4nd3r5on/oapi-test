@@ -57,7 +57,7 @@ func httpAPI(appLayer *app.App, authOpts Auth, logger *slog.Logger, addr string)
 	}
 
 	apiPrefix := "/api/v1"
-	mux.Handle(apiPrefix, http.StripPrefix(apiPrefix, handler))
+	mux.Handle(apiPrefix+"/", http.StripPrefix(apiPrefix, handler))
 	httpHandler := cors.AllowAll().Handler(mux)
 
 	logger.Info("running server", "addr", addr)

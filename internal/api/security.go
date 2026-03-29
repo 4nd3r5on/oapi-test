@@ -8,7 +8,6 @@ import (
 
 	"github.com/4nd3rs0n/oapi-test/internal/app/auth"
 	"github.com/4nd3rs0n/oapi-test/pkg/api"
-	"github.com/4nd3rs0n/oapi-test/pkg/errs"
 	pkgerrs "github.com/4nd3rs0n/oapi-test/pkg/errs"
 )
 
@@ -22,7 +21,7 @@ func (sh *SecurityHandler) HandleSessionKey(
 	t api.SessionKey,
 ) (context.Context, error) {
 	if sh.Session == nil {
-		return ctx, errs.ErrUnauthorized
+		return ctx, ogenerrors.ErrSkipServerSecurity
 	}
 	clientData, err := sh.Session(ctx, string(operationName), t.Token, t.Roles)
 	return handleVerifierFuncOut(ctx, clientData, err)
@@ -30,7 +29,7 @@ func (sh *SecurityHandler) HandleSessionKey(
 
 func (sh *SecurityHandler) HandleTelegramMiniApp(ctx context.Context, operationName api.OperationName, t api.TelegramMiniApp) (context.Context, error) {
 	if sh.TMA == nil {
-		return ctx, errs.ErrUnauthorized
+		return ctx, ogenerrors.ErrSkipServerSecurity
 	}
 	clientData, err := sh.TMA(ctx, string(operationName), t.APIKey, t.Roles)
 	return handleVerifierFuncOut(ctx, clientData, err)
@@ -38,7 +37,7 @@ func (sh *SecurityHandler) HandleTelegramMiniApp(ctx context.Context, operationN
 
 func (sh *SecurityHandler) HandleTrustMeBro(ctx context.Context, operationName api.OperationName, t api.TrustMeBro) (context.Context, error) {
 	if sh.TMB == nil {
-		return ctx, errs.ErrUnauthorized
+		return ctx, ogenerrors.ErrSkipServerSecurity
 	}
 	clientData, err := sh.TMB(ctx, string(operationName), t.APIKey, t.Roles)
 	return handleVerifierFuncOut(ctx, clientData, err)
